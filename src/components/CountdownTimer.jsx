@@ -1,61 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
+/**
+ * CountdownTimer Component
+ * 
+ * Displays a countdown to a specific date (Election Day).
+ * 
+ * @param {Object} props - Component props.
+ * @param {string} props.targetDate - ISO date string for the countdown target.
+ */
 export default function CountdownTimer({ targetDate }) {
-  const calculateTimeLeft = useCallback(() => {
-    const difference = +new Date(targetDate) - +new Date();
-    let timeLeft = {};
-
-    if (difference > 0) {
-      timeLeft = {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-      };
-    }
-
-    return timeLeft;
-  }, [targetDate]);
-
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
+      const difference = +new Date(targetDate) - +new Date();
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          mins: Math.floor((difference / 1000 / 60) % 60),
+          secs: Math.floor((difference / 1000) % 60),
+        });
+      }
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [calculateTimeLeft]);
+  }, [targetDate]);
 
-  const timerComponents = [];
-
-  Object.keys(timeLeft).forEach((interval) => {
-    timerComponents.push(
-      <div key={interval} className="flex flex-col items-center">
-        <span className="text-xl font-black text-primary tabular-nums">
-          {String(timeLeft[interval]).padStart(2, '0')}
-        </span>
-        <span className="text-[8px] uppercase tracking-widest font-bold opacity-40">{interval}</span>
-      </div>
-    );
-  });
+  const units = [
+    { label: 'D', value: timeLeft.days },
+    { label: 'H', value: timeLeft.hours },
+    { label: 'M', value: timeLeft.mins },
+    { label: 'S', value: timeLeft.secs },
+  ];
 
   return (
-    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">⌛</span>
-          <h3 className="text-[10px] font-black uppercase tracking-wider text-primary/80">Election Countdown</h3>
-        </div>
-        <span className="badge badge-primary badge-xs font-bold ">June 3, 2026</span>
+    <div className="p-6 rounded-[2rem] bg-base-200/50 border border-white/5 shadow-inner">
+      <div className="flex justify-between items-center mb-4 px-1">
+        <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-30">Countdown</span>
+        <div className="px-2 py-0.5 rounded-md bg-primary/10 text-[8px] font-black text-primary uppercase">June 3, 2026</div>
       </div>
-
-      <div className="flex justify-between px-2">
-        {timerComponents.length ? (
-          timerComponents
-        ) : (
-          <span className="text-xs font-bold text-success uppercase">Election is live! 🗳️</span>
-        )}
+      <div className="flex justify-between gap-2">
+        {units.map((u, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center">
+            <span className="text-xl font-black text-base-content tracking-tighter leading-none">
+              {u.value.toString().padStart(2, '0')}
+            </span>
+            <span className="text-[8px] font-black opacity-20 uppercase mt-1 tracking-widest">{u.label}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
